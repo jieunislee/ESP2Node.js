@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <title>WebPrototpying</title>
+    <meta charset="utf-8">
+  	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+  </head>
+
+  <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+  <link rel="stylesheet" href="./public/css/style.css">
+  <script src="https://d3js.org/d3.v5.min.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+
+  <body>
+    <div class="titlebar">
+      <div class="titlebar-logo">Web Prototyping Tutorial</div>
+      <button class="titlebar-btn" id="add_text"><i class="material-icons">add_circle_outline</i></button>
+      <div class="titlebar-btn-text">Add Text</div>
+    </div>
+
+    <div class="container">
+      <ul class="component-ul" id="component_text_list"> Text </ul>
+    </div>
+
+    <script>
+    var server_socket = io.connect('143.248.250.30');
+
+    var data_to_arduino ={};
+    data_to_arduino.button = "OFF";
+    data_to_arduino.potentiometer = 0;
+
+    server_socket.emit('message', data_to_arduino); //emit
+
+    server_socket.on('value', function(data){
+      console.log(data); // web to web
+        // data_from_arduino = JSON.parse(data);
+    });
+
+    var textIndex = 1;
+    $("#add_text").click(function(){
+      $("#component_text_list").append('<li class="component-li"><div class="component-ul-text">text'+ textIndex +'</div></li>')
+      // $( ".component-li" ).draggable();
+      textIndex++;
+    });
+
+    $( ".component-ul" ).sortable();
+    </script>
+
+    <!-- <script src="./public/js/main.js"></script> -->
+  </body>
+</html>

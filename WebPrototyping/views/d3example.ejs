@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <title>Integrator</title>
+    <meta charset="utf-8">
+  	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+  </head>
+
+  <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+  <script src="https://d3js.org/d3.v5.min.js"></script>
+
+  <style>
+    .circle-value{
+      r: 25;
+      fill: #00b04f;
+      stroke: #000;
+      stroke-width: 5px;
+    }
+
+    .circle-constraint{
+      r: 25;
+      fill: #fcbf10;
+      stroke: #000;
+      stroke-width: 5px;
+    }
+
+    .circle-tech{
+      r: 25;
+      fill: #29ade3;
+      stroke: #000;
+      stroke-width: 5px;
+    }
+
+    .circle-representation{
+      r: 25;
+      fill: #bf2025;
+      stroke: #000;
+      stroke-width: 5px;
+    }
+  </style>
+
+
+  <body>
+    <div class="linknode-canvas"></div>
+    <script>
+      //svg canvas setting
+      var svgCanvas = d3.select(".linknode-canvas")
+        .append("svg")
+        .attr("width", 2000)
+        .attr("height", 2000);
+
+      //add path group
+      svgCanvas.append("g").attr("id","path_group");
+
+      //add circle
+      svgCanvas.append("circle")
+        .attr("cx", 50)
+        .attr("cy", 50)
+        .attr("class", "circle-value")
+        .attr("id", "circle_value")
+        .call(d3.drag()
+          .on("end", generateValueCircle));
+
+      svgCanvas.append("circle")
+        .attr("cx", 150)
+        .attr("cy", 50)
+        .attr("class", "circle-constraint")
+        .attr("id", "circle_constraint")
+        .call(d3.drag()
+          .on("end", generateConstraintCircle));
+
+      svgCanvas.append("circle")
+        .attr("cx", 250)
+        .attr("cy", 50)
+        .attr("class", "circle-tech")
+        .attr("id", "circle_tech")
+        .call(d3.drag()
+          .on("end", generateTechCircle));
+
+      svgCanvas.append("circle")
+        .attr("cx", 350)
+        .attr("cy", 50)
+        .attr("class", "circle-representation")
+        .attr("id", "circle_representation")
+        .call(d3.drag()
+          .on("end", generateRepresentationCircle));
+
+      //circle class
+      function Circle(_id, _x, _y){
+        this.id = _id;
+        this.x = _x;
+        this.y = _y;
+      }
+
+      var CircleList = new Array();
+      var valueIndex = 1;
+      var constraintIndex = 1;
+      var techIndex = 1;
+      var representationIndex = 1;
+
+      //drag end events - generate circle in the svg canvas
+      function generateValueCircle(){
+        var _id = "circle_value_" + valueIndex;
+        var _x = d3.event.sourceEvent.offsetX;
+        var _y = d3.event.sourceEvent.offsetY;
+
+        svgCanvas.append("circle")
+          .attr("cx", _x)
+          .attr("cy", _y)
+          .attr("class", "circle-value")
+          .attr("id", _id)
+          .call(d3.drag()
+            .on("start", generatePath)
+            .on("drag", dragCircle)
+            .on("end", connectionCheck));
+
+        CircleList.push(new Circle(_id, _x, _y));
+        valueIndex++;
+      }
+
+      function generateConstraintCircle(){
+        var _id = "circle_constraint_" + constraintIndex;
+        var _x = d3.event.sourceEvent.offsetX;
+        var _y = d3.event.sourceEvent.offsetY;
+
+        svgCanvas.append("circle")
+          .attr("cx", d3.event.sourceEvent.offsetX)
+          .attr("cy", d3.event.sourceEvent.offsetY)
+          .attr("class", "circle-constraint")
+          .attr("id", _id)
+          .call(d3.drag()
+            .on("start", generatePath)
+            .on("drag", dragCircle)
+            .on("end", connectionCheck));
+
+        CircleList.push(new Circle(_id, _x, _y));
+        constraintIndex++;
+      }
+
+      function generateTechCircle(){
+        var _id = "circle_tech_" + techIndex;
+        var _x = d3.event.sourceEvent.offsetX;
+        var _y = d3.event.sourceEvent.offsetY;
+
+        svgCanvas.append("circle")
+          .attr("cx", d3.event.sourceEvent.offsetX)
+          .attr("cy", d3.event.sourceEvent.offsetY)
+          .attr("class", "circle-tech")
+          .attr("id", _id)
+          .call(d3.drag()
+            .on("start", generatePath)
+            .on("drag", dragCircle)
+            .on("end", connectionCheck));
+
+        CircleList.push(new Circle(_id, _x, _y));
+        techIndex++;
+      }
+
+      function generateRepresentationCircle(){
+        var _id = "circle_representation_" + representationIndex;
+        var _x = d3.event.sourceEvent.offsetX;
+        var _y = d3.event.sourceEvent.offsetY;
+
+        svgCanvas.append("circle")
+          .attr("cx", d3.event.sourceEvent.offsetX)
+          .attr("cy", d3.event.sourceEvent.offsetY)
+          .attr("class", "circle-representation")
+          .attr("id", _id)
+          .call(d3.drag()
+            .on("start", generatePath)
+            .on("drag", dragCircle)
+            .on("end", connectionCheck));
+
+        CircleList.push(new Circle(_id, _x, _y));
+        representationIndex++;
+      }
+
+      function findCircleFromID(_id){
+        var _circle;
+        for(var i in CircleList){
+          if(_id == CircleList[i].id){
+            _circle = CircleList[i];
+          }
+        }
+        return _circle;
+      }
+
+      function generatePath(){
+        if(!d3.event.sourceEvent.shiftKey) return; //shift key event
+
+        var _circleID = d3.select(this).attr("id");
+        var _circle = findCircleFromID(_circleID);
+
+        var _fromX, _toX = _circle.x;
+        var _fromY, _toY = _circle.y;
+        var _path = "M"+ _fromX +"," + _fromY +" L"+ _toX +"," +_toY;
+        d3.select("#path_group").append("path")
+          .attr("d", _path)
+          .attr("stroke", "#5d5d77")
+          .attr("fill", "none")
+          .attr("id", "currentPath");
+        }
+
+      function dragCircle(){
+        var _draggedCircleID = d3.select(this).attr("id")
+        var _draggedCircle = findCircleFromID(_draggedCircleID);
+
+        if(!d3.event.sourceEvent.shiftKey){ //dragging circle
+          event.preventDefault(); //prevent default mouse event for dragging svg elements
+          var _x = d3.select(this).attr("cx");
+          var _y = d3.select(this).attr("cy");
+          var _dx = d3.event.x - _x;
+          var _dy = d3.event.y - _y;
+          d3.select(this).attr("transform", "translate(" + _dx + "," + _dy + ")");
+          _draggedCircle.x = d3.event.x; //save changed coordination
+          _draggedCircle.y = d3.event.y;
+        } else{ //drawing path
+          var _fromX = _draggedCircle.x;
+          var _fromY= _draggedCircle.y;
+          var _toX = d3.event.sourceEvent.offsetX;
+          var _toY = d3.event.sourceEvent.offsetY;
+          var _path = "M"+ _fromX +"," + _fromY +" L"+ _toX +"," +_toY;
+          d3.select("#currentPath").attr("d", _path);
+        }
+
+        //edit path
+        for(var i in PathList){
+          if(_draggedCircleID == PathList[i].from){
+            var _toCircle = findCircleFromID(PathList[i].to);
+            var _fromX = _draggedCircle.x;
+            var _fromY = _draggedCircle.y;
+            var _toX = _toCircle.x;
+            var _toY = _toCircle.y;
+            var _path = "M"+ _fromX +"," + _fromY +" L"+ _toX +"," +_toY;
+            d3.select("#path_" + _draggedCircle.id + "_" + _toCircle.id ).attr("d", _path);
+          } else if(_draggedCircleID == PathList[i].to){
+            var _fromCircle = findCircleFromID(PathList[i].from);
+            var _fromX = _fromCircle.x;
+            var _fromY= _fromCircle.y;
+            var _toX = _draggedCircle.x;
+            var _toY = _draggedCircle.y;
+            var _path = "M"+ _fromX +"," + _fromY +" L"+ _toX +"," +_toY;
+            d3.select("#path_" + _fromCircle.id + "_" + _draggedCircle.id ).attr("d", _path);
+          }
+        }
+      }
+
+      var OFFSET = 20;
+      var pathIndex = 0;
+      var PathList = new Array();
+
+      function Path(_index, _from, _to){
+        this.index = _index;
+        this.from = _from;
+        this.to = _to;
+        this.id = "path_"+_from+"_"+_to;
+      }
+
+      function connectionCheck(d){
+        var _fromID = d3.select(this).attr("id")
+        var _fromCircle = findCircleFromID(_fromID);
+        var _endID;
+
+        var _isCircle = false;
+        var _mouseX = d3.event.sourceEvent.offsetX;
+        var _mouseY = d3.event.sourceEvent.offsetY;
+
+        var _toX;
+        var _toY;
+
+        for(var i in CircleList){
+          var _minX = CircleList[i].x - OFFSET;
+          var _maxX = CircleList[i].x + OFFSET;
+          var _minY = CircleList[i].y - OFFSET;
+          var _maxY = CircleList[i].y + OFFSET;
+          if(_minX < _mouseX && _mouseX < _maxX && _minY < _mouseY && _mouseY < _maxY){
+            _isCircle = true;
+            _endID =CircleList[i].id;
+            var _toX = CircleList[i].x;
+            var _toY = CircleList[i].y;
+          }
+        }
+
+        if(_isCircle){
+          var _fromX = _fromCircle.x;
+          var _fromY= _fromCircle.y;
+          var _path = "M"+ _fromX +"," + _fromY +" L"+ _toX +"," +_toY;
+          d3.select("#currentPath").attr("d", _path)
+            .attr("class", "Circle-path");
+          d3.select("#currentPath").attr("id", "path_" + _fromID + "_" + _endID);
+          PathList.push(new Path(pathIndex, _fromID, _endID));
+          pathIndex++;
+        }else {
+          d3.select("#currentPath").remove();
+        }
+      }
+
+    </script>
+  </body>
+</html>

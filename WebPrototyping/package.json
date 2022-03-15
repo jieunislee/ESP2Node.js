@@ -1,0 +1,9 @@
+{
+  "name": "WebPrototpying",
+  "version": "1.0.0",
+  "dependencies": {
+    "ejs": "~2.6.1",
+    "express": "~4.16.0",
+    "socket.io": "^2.3.0"
+  }
+}
