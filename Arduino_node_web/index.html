@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+  <head>
+
+    <meta charset="utf-8">
+    <title>Arduino Node Example</title>
+
+  </head>
+  <body>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.1/socket.io.js"></script>
+
+    <script>
+    var socket = io.connect('http://cidrdev.kaist.ac.kr:4558');
+    var getValue = 0;
+
+    socket.on('message', function(data) {
+      if(JSON.parse(data).project == "ArduinoNodeExample"){
+        getValue = JSON.parse(data).value;
+      }
+      console.log(getValue);
+    });
+    </script>
+
+  </body>
+</html>
